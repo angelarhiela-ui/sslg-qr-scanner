@@ -537,59 +537,6 @@ window.onload =
   };
 
 </script>
-
-<button onclick="testConnection()" style="margin:20px;padding:15px;">
-  TEST GOOGLE SHEET
-</button>
-
-<script>
-function testConnection() {
-
-  const iframe = document.createElement("iframe");
-  iframe.name = "testFrame";
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
-
-  const form = document.createElement("form");
-
-  form.method = "POST";
-  form.action = APPS_SCRIPT_URL;
-  form.target = "testFrame";
-
-  const student = document.createElement("input");
-  student.type = "hidden";
-  student.name = "studentName";
-  student.value = "CONNECTION TEST";
-  form.appendChild(student);
-
-  const violation = document.createElement("input");
-  violation.type = "hidden";
-  violation.name = "violation";
-  violation.value = "Late";
-  form.appendChild(violation);
-
-  const officer = document.createElement("input");
-  officer.type = "hidden";
-  officer.name = "officer";
-  officer.value = "TEST OFFICER";
-  form.appendChild(officer);
-
-  document.body.appendChild(form);
-
-  form.submit();
-
-  alert("Test sent. Check your Google Sheet.");
-
-  setTimeout(function() {
-    form.remove();
-    iframe.remove();
-  }, 3000);
-}
-</script>
-
-<button onclick="testConnection()" style="margin:20px;padding:15px;">
-  TEST GOOGLE SHEET
-</button>
       
 </body>
 
