@@ -1,0 +1,1 @@
+# sslg-qr-scanner
