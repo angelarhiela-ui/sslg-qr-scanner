@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no">
+
+<title>SSLG QR Scanner</title>
+
+<script src="https://unpkg.com/html5-qrcode"
+        type="text/javascript"></script>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #f5f7fa;
+  font-family: Arial, sans-serif;
+  color: #222;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.header p {
+  margin-top: 6px;
+  color: #666;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+  margin-bottom: 15px;
+}
+
+#reader {
+  width: 100%;
+}
+
+.student-name {
+  text-align: center;
+  font-size: 23px;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 7px;
+}
+
+select,
+input {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  background: white;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: bold;
+  margin-top: 12px;
+}
+
+.record-button {
+  background: #1f6feb;
+  color: white;
+}
+
+.record-button:disabled {
+  background: #aaa;
+}
+
+.scan-button {
+  background: #333;
+  color: white;
+}
+
+.status {
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.success {
+  color: green;
+}
+
+.error {
+  color: red;
+}
+
+.hidden {
+  display: none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+
+    <h1>SSLG QR Scanner</h1>
+
+    <p>
+      Student Monitoring System
+    </p>
+
+  </div>
+
+
+  <div class="card">
+
+    <div id="reader"></div>
+
+    <div id="scanStatus"
+         class="status">
+
+      Starting camera...
+
+    </div>
+
+  </div>
+
+
+  <div id="studentCard"
+       class="card hidden">
+
+    <div class="label">
+      STUDENT
+    </div>
+
+    <div id="studentName"
+         class="student-name">
+    </div>
+
+
+    <div class="label">
+      VIOLATION
+    </div>
+
+    <select id="violation">
+
+      <option value="">
+        Select violation
+      </option>
+
+      <option value="Late">
+        Late
+      </option>
+
+      <option value="No ID">
+        No ID
+      </option>
+
+      <option value="Improper Uniform">
+        Improper Uniform
+      </option>
+
+      <option value="Other">
+        Other
+      </option>
+
+    </select>
+
+
+    <div class="label"
+         style="margin-top:15px;">
+
+      RECORDED BY
+
+    </div>
+
+    <input
+      id="officer"
+      type="text"
+      placeholder="SSLG Officer">
+
+
+    <button
+      class="record-button"
+      id="recordButton"
+      onclick="recordStudent()">
+
+      RECORD VIOLATION
+
+    </button>
+
+
+    <button
+      class="scan-button"
+      onclick="scanNext()">
+
+      SCAN NEXT STUDENT
+
+    </button>
+
+
+    <div id="result"
+         class="status">
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const APPS_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbwXE4QFOt5F6Z74pfHVRvGCIwbPoOQGRLJ1ahV3PcRORBBoUV3MMj0VKkYtFd_Zo9cPzQ/exec";
+
+
+let scanner;
+
+let studentName = "";
+
+let scannerRunning = false;
+
+
+/* START CAMERA */
+
+function startScanner() {
+
+  scanner =
+    new Html5Qrcode("reader");
+
+  scanner.start(
+
+    {
+      facingMode: "environment"
+    },
+
+    {
+      fps: 10,
+
+      qrbox: {
+        width: 250,
+        height: 250
+      }
+
+    },
+
+    function(decodedText) {
+
+      studentName =
+        decodedText.trim();
+
+      document.getElementById(
+        "studentName"
+      ).textContent =
+        studentName;
+
+      document.getElementById(
+        "studentCard"
+      ).classList.remove("hidden");
+
+      document.getElementById(
+        "scanStatus"
+      ).textContent =
+        "QR successfully scanned.";
+
+      scannerRunning = true;
+
+      scanner.stop();
+
+    },
+
+    function(errorMessage) {
+
+      // Normal scanning failures are ignored.
+
+    }
+
+  )
+
+  .then(function() {
+
+    scannerRunning = true;
+
+    document.getElementById(
+      "scanStatus"
+    ).textContent =
+      "Point camera at student's QR code.";
+
+  })
+
+  .catch(function(error) {
+
+    document.getElementById(
+      "scanStatus"
+    ).innerHTML =
+      "Camera could not start.<br><br>" +
+      "Please allow camera access.";
+
+    console.error(error);
+
+  });
+
+}
+
+
+/* RECORD */
+
+async function recordStudent() {
+
+  const violation =
+    document.getElementById(
+      "violation"
+    ).value;
+
+  const officer =
+    document.getElementById(
+      "officer"
+    ).value.trim();
+
+  const result =
+    document.getElementById(
+      "result"
+    );
+
+  const button =
+    document.getElementById(
+      "recordButton"
+    );
+
+
+  if (!studentName) {
+
+    result.textContent =
+      "No student scanned.";
+
+    result.className =
+      "status error";
+
+    return;
+
+  }
+
+
+  if (!violation) {
+
+    result.textContent =
+      "Please select a violation.";
+
+    result.className =
+      "status error";
+
+    return;
+
+  }
+
+
+  if (!officer) {
+
+    result.textContent =
+      "Please enter the officer's name.";
+
+    result.className =
+      "status error";
+
+    return;
+
+  }
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "RECORDING...";
+
+
+  try {
+
+    const response =
+      await fetch(
+        APPS_SCRIPT_URL,
+        {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body: JSON.stringify({
+
+            studentName:
+              studentName,
+
+            violation:
+              violation,
+
+            officer:
+              officer
+
+          })
+
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (!data.success) {
+
+      throw new Error(
+        data.error ||
+        "Recording failed."
+      );
+
+    }
+
+
+    result.textContent =
+      "✓ Recorded at " +
+      data.timestamp;
+
+    result.className =
+      "status success";
+
+    button.textContent =
+      "RECORDED ✓";
+
+
+  } catch(error) {
+
+    result.textContent =
+      "Error: " +
+      error.message;
+
+    result.className =
+      "status error";
+
+    button.disabled = false;
+
+    button.textContent =
+      "RECORD VIOLATION";
+
+  }
+
+}
+
+
+/* NEXT STUDENT */
+
+function scanNext() {
+
+  studentName = "";
+
+  document.getElementById(
+    "studentCard"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "violation"
+  ).value = "";
+
+  document.getElementById(
+    "result"
+  ).textContent = "";
+
+  document.getElementById(
+    "recordButton"
+  ).disabled = false;
+
+  document.getElementById(
+    "recordButton"
+  ).textContent =
+    "RECORD VIOLATION";
+
+  startScanner();
+
+}
+
+
+/* START */
+
+window.onload =
+  function() {
+
+    startScanner();
+
+  };
+
+</script>
+
+</body>
+
+</html>
