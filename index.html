@@ -344,24 +344,16 @@ function startScanner() {
 async function recordStudent() {
 
   const violation =
-    document.getElementById(
-      "violation"
-    ).value;
+    document.getElementById("violation").value;
 
   const officer =
-    document.getElementById(
-      "officer"
-    ).value.trim();
+    document.getElementById("officer").value.trim();
 
   const result =
-    document.getElementById(
-      "result"
-    );
+    document.getElementById("result");
 
   const button =
-    document.getElementById(
-      "recordButton"
-    );
+    document.getElementById("recordButton");
 
 
   if (!studentName) {
@@ -373,9 +365,124 @@ async function recordStudent() {
       "status error";
 
     return;
+  }
+
+
+  if (!violation) {
+
+    result.textContent =
+      "Please select a violation.";
+
+    result.className =
+      "status error";
+
+    return;
+  }
+
+
+  if (!officer) {
+
+    result.textContent =
+      "Please enter the officer's name.";
+
+    result.className =
+      "status error";
+
+    return;
+  }
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "RECORDING...";
+
+
+  const data = new URLSearchParams();
+
+  data.append(
+    "studentName",
+    studentName
+  );
+
+  data.append(
+    "violation",
+    violation
+  );
+
+  data.append(
+    "officer",
+    officer
+  );
+
+
+  try {
+
+    await fetch(
+      APPS_SCRIPT_URL,
+      {
+        method: "POST",
+
+        mode: "no-cors",
+
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded"
+        },
+
+        body: data.toString()
+      }
+    );
+
+
+    /*
+     * no-cors means the browser cannot read
+     * the response from Apps Script.
+     *
+     * But Apps Script will still receive
+     * and process the POST request.
+     */
+
+    result.textContent =
+      "✓ Record sent successfully.";
+
+    result.className =
+      "status success";
+
+    button.textContent =
+      "RECORDED ✓";
+
+
+    /*
+     * Give Apps Script a moment to write
+     * the record before allowing the
+     * next student to be scanned.
+     */
+
+    setTimeout(function() {
+
+      scanNext();
+
+    }, 1000);
+
+
+  } catch (error) {
+
+    result.textContent =
+      "Error: " + error.message;
+
+    result.className =
+      "status error";
+
+    button.disabled = false;
+
+    button.textContent =
+      "RECORD VIOLATION";
 
   }
 
+}
+      
 
   if (!violation) {
 
