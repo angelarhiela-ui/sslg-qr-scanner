@@ -341,7 +341,7 @@ function startScanner() {
 
 /* RECORD */
 
-async function recordStudent() {
+function recordStudent() {
 
   const violation =
     document.getElementById("violation").value;
@@ -398,198 +398,102 @@ async function recordStudent() {
     "RECORDING...";
 
 
-  const data = new URLSearchParams();
+  const iframe =
+    document.createElement("iframe");
 
-  data.append(
-    "studentName",
-    studentName
-  );
+  iframe.name =
+    "hiddenSubmitFrame";
 
-  data.append(
-    "violation",
-    violation
-  );
+  iframe.style.display =
+    "none";
 
-  data.append(
-    "officer",
-    officer
-  );
+  document.body.appendChild(iframe);
 
 
-  try {
+  const form =
+    document.createElement("form");
 
-    await fetch(
-      APPS_SCRIPT_URL,
-      {
-        method: "POST",
+  form.method =
+    "POST";
 
-        mode: "no-cors",
+  form.action =
+    APPS_SCRIPT_URL;
 
-        headers: {
-          "Content-Type":
-            "application/x-www-form-urlencoded"
-        },
-
-        body: data.toString()
-      }
-    );
+  form.target =
+    "hiddenSubmitFrame";
 
 
-    /*
-     * no-cors means the browser cannot read
-     * the response from Apps Script.
-     *
-     * But Apps Script will still receive
-     * and process the POST request.
-     */
+  const studentInput =
+    document.createElement("input");
 
-    result.textContent =
-      "✓ Record sent successfully.";
+  studentInput.type =
+    "hidden";
 
-    result.className =
-      "status success";
+  studentInput.name =
+    "studentName";
 
-    button.textContent =
-      "RECORDED ✓";
+  studentInput.value =
+    studentName;
+
+  form.appendChild(studentInput);
 
 
-    /*
-     * Give Apps Script a moment to write
-     * the record before allowing the
-     * next student to be scanned.
-     */
+  const violationInput =
+    document.createElement("input");
 
-    setTimeout(function() {
+  violationInput.type =
+    "hidden";
 
-      scanNext();
+  violationInput.name =
+    "violation";
 
-    }, 1000);
+  violationInput.value =
+    violation;
 
-
-  } catch (error) {
-
-    result.textContent =
-      "Error: " + error.message;
-
-    result.className =
-      "status error";
-
-    button.disabled = false;
-
-    button.textContent =
-      "RECORD VIOLATION";
-
-  }
-
-}
-      
-
-  if (!violation) {
-
-    result.textContent =
-      "Please select a violation.";
-
-    result.className =
-      "status error";
-
-    return;
-
-  }
+  form.appendChild(violationInput);
 
 
-  if (!officer) {
+  const officerInput =
+    document.createElement("input");
 
-    result.textContent =
-      "Please enter the officer's name.";
+  officerInput.type =
+    "hidden";
 
-    result.className =
-      "status error";
+  officerInput.name =
+    "officer";
 
-    return;
+  officerInput.value =
+    officer;
 
-  }
+  form.appendChild(officerInput);
 
 
-  button.disabled = true;
+  document.body.appendChild(form);
+
+  form.submit();
+
+
+  result.textContent =
+    "✓ Record sent successfully.";
+
+  result.className =
+    "status success";
 
   button.textContent =
-    "RECORDING...";
+    "RECORDED ✓";
 
 
-  try {
+  setTimeout(function() {
 
-    const response =
-      await fetch(
-        APPS_SCRIPT_URL,
-        {
+    form.remove();
 
-          method: "POST",
+    iframe.remove();
 
-          headers: {
-            "Content-Type":
-              "text/plain;charset=utf-8"
-          },
+    scanNext();
 
-          body: JSON.stringify({
-
-            studentName:
-              studentName,
-
-            violation:
-              violation,
-
-            officer:
-              officer
-
-          })
-
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (!data.success) {
-
-      throw new Error(
-        data.error ||
-        "Recording failed."
-      );
-
-    }
-
-
-    result.textContent =
-      "✓ Recorded at " +
-      data.timestamp;
-
-    result.className =
-      "status success";
-
-    button.textContent =
-      "RECORDED ✓";
-
-
-  } catch(error) {
-
-    result.textContent =
-      "Error: " +
-      error.message;
-
-    result.className =
-      "status error";
-
-    button.disabled = false;
-
-    button.textContent =
-      "RECORD VIOLATION";
-
-  }
+  }, 1000);
 
 }
-
 
 /* NEXT STUDENT */
 
